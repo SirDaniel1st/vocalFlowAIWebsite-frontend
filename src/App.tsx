@@ -1,3 +1,8 @@
+import {
+  SignedIn,
+  SignedOut,
+  RedirectToSignIn,
+} from "@clerk/clerk-react";
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { DashboardContent } from '@/components/dashboard/DashboardContent';
 import { AnalyticsContent } from '@/components/analytics/AnalyticsContent';
@@ -12,6 +17,8 @@ import { Testimonials } from '@/components/sections/Testimonials';
 import { CTA } from '@/components/sections/CTA';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { SignInPage } from '@/components/auth/SignInPage';
+import { SignUpPage } from '@/components/auth/SignUpPage';
 import { useEffect, useState } from 'react';
 
 function App() {
@@ -26,66 +33,49 @@ function App() {
     return () => window.removeEventListener('popstate', handlePathChange);
   }, []);
 
-  if (currentPath === '/dashboard') {
+  // Public landing page
+  if (currentPath === '/') {
     return (
-      <DashboardLayout>
-        <DashboardContent />
-      </DashboardLayout>
+      <div className="min-h-screen">
+        <Navbar />
+        <main>
+          <Hero />
+          <Benefits />
+          <Features />
+          <Testimonials />
+          <CTA />
+        </main>
+        <Footer />
+      </div>
     );
   }
 
-  if (currentPath === '/dashboard/analytics') {
-    return (
-      <DashboardLayout>
-        <AnalyticsContent />
-      </DashboardLayout>
-    );
+  // Auth pages
+  if (currentPath === '/sign-in') {
+    return <SignInPage />;
   }
 
-  if (currentPath === '/dashboard/campaigns') {
-    return (
-      <DashboardLayout>
-        <CampaignContent />
-      </DashboardLayout>
-    );
+  if (currentPath === '/sign-up') {
+    return <SignUpPage />;
   }
 
-  if (currentPath === '/dashboard/contacts') {
-    return (
-      <DashboardLayout>
-        <ContactsContent />
-      </DashboardLayout>
-    );
-  }
-
-  if (currentPath.startsWith('/dashboard/contacts/')) {
-    return (
-      <DashboardLayout>
-        <ContactDetailView />
-      </DashboardLayout>
-    );
-  }
-
-  if (currentPath === '/dashboard/usermanagement') {
-    return (
-      <DashboardLayout>
-        <UserManagementContent />
-      </DashboardLayout>
-    );
-  }
-
+  // Protected routes
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main>
-        <Hero />
-        <Benefits />
-        <Features />
-        <Testimonials />
-        <CTA />
-      </main>
-      <Footer />
-    </div>
+    <>
+      <SignedIn>
+        <DashboardLayout>
+          {currentPath === '/dashboard' && <DashboardContent />}
+          {currentPath === '/dashboard/analytics' && <AnalyticsContent />}
+          {currentPath === '/dashboard/campaigns' && <CampaignContent />}
+          {currentPath === '/dashboard/contacts' && <ContactsContent />}
+          {currentPath.startsWith('/dashboard/contacts/') && <ContactDetailView />}
+          {currentPath === '/dashboard/usermanagement' && <UserManagementContent />}
+        </DashboardLayout>
+      </SignedIn>
+      <SignedOut>
+        <RedirectToSignIn />
+      </SignedOut>
+    </>
   );
 }
 

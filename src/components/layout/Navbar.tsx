@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
 import {
   Sheet,
   SheetContent,
@@ -56,12 +57,20 @@ export function Navbar() {
 
           {/* Desktop CTA Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline" size="sm">
-              Login
-            </Button>
-            <Button size="sm" className="bg-primary hover:bg-primary/90">
-              Request Demo
-            </Button>
+            <SignedOut>
+              <Button variant="outline" size="sm" onClick={() => window.location.href = '/sign-in'}>
+                Login
+              </Button>
+              <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={() => window.location.href = '/sign-up'}>
+                Sign Up
+              </Button>
+            </SignedOut>
+            <SignedIn>
+              <Button variant="outline" size="sm" onClick={() => window.location.href = '/dashboard'}>
+                Dashboard
+              </Button>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
           </div>
 
           {/* Mobile Menu */}
@@ -95,12 +104,20 @@ export function Navbar() {
                   </a>
                 ))}
                 <div className="flex flex-col space-y-4 pt-4 border-t">
-                  <Button variant="outline" className="w-full">
-                    Login
-                  </Button>
-                  <Button className="w-full">
-                    Request Demo
-                  </Button>
+                  <SignedOut>
+                    <Button variant="outline" onClick={() => window.location.href = '/sign-in'}>
+                      Login
+                    </Button>
+                    <Button onClick={() => window.location.href = '/sign-up'}>
+                      Sign Up
+                    </Button>
+                  </SignedOut>
+                  <SignedIn>
+                    <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>
+                      Dashboard
+                    </Button>
+                    <UserButton afterSignOutUrl="/" />
+                  </SignedIn>
                 </div>
               </div>
             </SheetContent>

@@ -5,7 +5,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { BarChart2, ChevronRight, Users, Clock } from "lucide-react";
+import { BarChart2, ChevronRight, Users, Clock, Link } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button"
 
 const campaigns = [
   {
@@ -61,8 +62,10 @@ export function CampaignSummary() {
           </p>
         </div>
         <Button>
-          Create Campaign
+          <a href="/dashboard/campaigns">Create a Campaign</a>
         </Button>
+
+
       </div>
 
       <div className="grid gap-4">

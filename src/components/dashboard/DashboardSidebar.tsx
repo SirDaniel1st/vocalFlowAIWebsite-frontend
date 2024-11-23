@@ -70,7 +70,7 @@ const sidebarItems = [
   {
     icon: UserCircle,
     label: 'User Management',
-    href: '/dashboard/users',
+    href: '/dashboard/usermanagement',
     subItems: [
       { label: 'Team Members', href: '/dashboard/users/team' },
       { label: 'Roles', href: '/dashboard/users/roles' },

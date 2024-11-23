@@ -3,7 +3,6 @@ import { CampaignStats } from './CampaignStats';
 import { CampaignTable } from './CampaignTable';
 import { CampaignFilters } from './CampaignFilters';
 import { CreateCampaignDialog } from './CreateCampaignDialog/CreateCampaignDialog';
-import { PostLaunchMonitoring } from './monitoring/PostLaunchMonitoring';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { PlusCircle, Download, BarChart2 } from 'lucide-react';
@@ -74,8 +73,7 @@ export function CampaignContent() {
         onOpenChange={setIsCreateDialogOpen}
       />
 
-      {/* Post-Launch Monitoring Panel */}
-      <PostLaunchMonitoring campaignId="active-campaign-id" />
+  
     </div>
   );
 }

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileType, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { Upload, FileType, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 
 interface ImportContactsDialogProps {
@@ -24,19 +24,19 @@ export function ImportContactsDialog({ open, onOpenChange }: ImportContactsDialo
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
-    
+
     if (selectedFile) {
       // Check file type
       if (!selectedFile.name.match(/\.(csv|xlsx|xls)$/)) {
         toast({
           variant: "destructive",
-          title: (
+          title: "Invalid File Type", // Ensure title is a string
+          description: (
             <div className="flex items-center gap-2">
               <XCircle className="h-4 w-4" />
-              <span>Invalid File Type</span>
+              <span>Please upload a CSV or Excel file.</span>
             </div>
           ),
-          description: "Please upload a CSV or Excel file.",
         });
         return;
       }
@@ -45,26 +45,26 @@ export function ImportContactsDialog({ open, onOpenChange }: ImportContactsDialo
       if (selectedFile.size > 5 * 1024 * 1024) {
         toast({
           variant: "destructive",
-          title: (
+          title: "File Too Large", // Ensure title is a string
+          description: (
             <div className="flex items-center gap-2">
               <XCircle className="h-4 w-4" />
-              <span>File Too Large</span>
+              <span>File size should be less than 5MB.</span>
             </div>
           ),
-          description: "File size should be less than 5MB.",
         });
         return;
       }
 
       setFile(selectedFile);
       toast({
-        title: (
+        title: "File Selected", // Ensure title is a string
+        description: (
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-green-500" />
-            <span>File Selected</span>
+            <span>{selectedFile.name} ready for import.</span>
           </div>
         ),
-        description: `${selectedFile.name} ready for import.`,
       });
     }
   };
@@ -73,13 +73,13 @@ export function ImportContactsDialog({ open, onOpenChange }: ImportContactsDialo
     if (!file) {
       toast({
         variant: "destructive",
-        title: (
+        title: "No File Selected", // Ensure title is a string
+        description: (
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
-            <span>No File Selected</span>
+            <span>Please select a file to import.</span>
           </div>
         ),
-        description: "Please select a file to import.",
       });
       return;
     }
@@ -88,16 +88,16 @@ export function ImportContactsDialog({ open, onOpenChange }: ImportContactsDialo
 
     try {
       // Simulate file upload
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       toast({
-        title: (
+        title: "Import Successful", // Ensure title is a string
+        description: (
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-green-500" />
-            <span>Import Successful</span>
+            <span>Contacts have been successfully imported.</span>
           </div>
         ),
-        description: "Contacts have been successfully imported.",
       });
 
       onOpenChange(false);
@@ -105,13 +105,13 @@ export function ImportContactsDialog({ open, onOpenChange }: ImportContactsDialo
     } catch (error) {
       toast({
         variant: "destructive",
-        title: (
+        title: "Import Failed", // Ensure title is a string
+        description: (
           <div className="flex items-center gap-2">
             <XCircle className="h-4 w-4" />
-            <span>Import Failed</span>
+            <span>An error occurred while importing contacts. Please try again.</span>
           </div>
         ),
-        description: "An error occurred while importing contacts. Please try again.",
       });
     } finally {
       setIsUploading(false);
@@ -171,17 +171,14 @@ export function ImportContactsDialog({ open, onOpenChange }: ImportContactsDialo
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleImport} 
-            disabled={!file || isUploading}
-          >
+          <Button onClick={handleImport} disabled={!file || isUploading}>
             {isUploading ? (
               <>
                 <Upload className="mr-2 h-4 w-4 animate-spin" />
                 Importing...
               </>
             ) : (
-              'Import Contacts'
+              "Import Contacts"
             )}
           </Button>
         </div>
