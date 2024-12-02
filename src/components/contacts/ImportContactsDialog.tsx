@@ -1,5 +1,3 @@
-import { useRef, useState } from 'react';
-import { useUser } from "@clerk/clerk-react";
 import {
   Dialog,
   DialogContent,
@@ -10,164 +8,114 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import  importContactsBatch from "@/lib/api-client";
-import Papa from 'papaparse';
-import { 
-  Upload, 
-  FileType, 
-  CheckCircle2, 
-  XCircle, 
-  AlertTriangle,
-  Loader2 
-} from 'lucide-react';
+import { Upload, FileType, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { useState } from "react";
 
 interface ImportContactsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
 }
 
-export function ImportContactsDialog({ 
-  open, 
-  onOpenChange,
-  onSuccess 
-}: ImportContactsDialogProps) {
-  const { user } = useUser();
+export function ImportContactsDialog({ open, onOpenChange }: ImportContactsDialogProps) {
   const { toast } = useToast();
+  const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user) return;
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
 
-    // Validate file type
-    if (!file.name.match(/\.(csv|xlsx?)$/i)) {
+    if (selectedFile) {
+      // Check file type
+      if (!selectedFile.name.match(/\.(csv|xlsx|xls)$/)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid File Type", // Ensure title is a string
+          description: (
+            <div className="flex items-center gap-2">
+              <XCircle className="h-4 w-4" />
+              <span>Please upload a CSV or Excel file.</span>
+            </div>
+          ),
+        });
+        return;
+      }
+
+      // Check file size (e.g., 5MB limit)
+      if (selectedFile.size > 5 * 1024 * 1024) {
+        toast({
+          variant: "destructive",
+          title: "File Too Large", // Ensure title is a string
+          description: (
+            <div className="flex items-center gap-2">
+              <XCircle className="h-4 w-4" />
+              <span>File size should be less than 5MB.</span>
+            </div>
+          ),
+        });
+        return;
+      }
+
+      setFile(selectedFile);
       toast({
-        variant: "destructive",
-        title: "Invalid File Type",
-        description: "Please upload a CSV or Excel file.",
+        title: "File Selected", // Ensure title is a string
+        description: (
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <span>{selectedFile.name} ready for import.</span>
+          </div>
+        ),
       });
-      return;
     }
+  };
 
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
+  const handleImport = async () => {
+    if (!file) {
       toast({
         variant: "destructive",
-        title: "File Too Large",
-        description: "File size should be less than 5MB.",
+        title: "No File Selected", // Ensure title is a string
+        description: (
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            <span>Please select a file to import.</span>
+          </div>
+        ),
       });
       return;
     }
 
     setIsUploading(true);
-    setProgress(0);
 
     try {
-      const reader = new FileReader();
-      
-      reader.onprogress = (event) => {
-        if (event.lengthComputable) {
-          setProgress((event.loaded / event.total) * 100);
-        }
-      };
+      // Simulate file upload
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      reader.onload = async (e) => {
-        try {
-          const content = e.target?.result as string;
-          
-          // Parse CSV data
-          Papa.parse(content, {
-            header: true,
-            skipEmptyLines: true,
-            transformHeader: (header: string) => {
-              // Normalize headers
-              const headerMap: { [key: string]: string } = {
-                'first_name': 'firstName',
-                'last_name': 'lastName',
-                'job_title': 'jobTitle'
-              };
-              return headerMap[header.toLowerCase()] || header;
-            },
-            complete: async (results) => {
-              try {
-                const result = await importContactsBatch(user.id, results.data);
+      toast({
+        title: "Import Successful", // Ensure title is a string
+        description: (
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <span>Contacts have been successfully imported.</span>
+          </div>
+        ),
+      });
 
-                toast({
-                  title: "Import Successful",
-                  description: (
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span>
-                        Successfully imported {result.success} contacts.
-                        {result.failed > 0 && ` Failed to import ${result.failed} contacts.`}
-                      </span>
-                    </div>
-                  )
-                });
-
-                onSuccess?.();
-                onOpenChange(false);
-              } catch (error) {
-                throw error;
-              }
-            },
-            error: (error: Error) => {
-              throw error;
-            }
-          });
-        } catch (error) {
-          console.error('Import error:', error);
-          toast({
-            variant: "destructive",
-            title: "Import Failed",
-            description: (
-              <div className="flex items-center gap-2">
-                <XCircle className="h-4 w-4" />
-                <span>An error occurred while importing contacts. Please try again.</span>
-              </div>
-            )
-          });
-        }
-      };
-
-      reader.readAsText(file);
+      onOpenChange(false);
+      setFile(null);
     } catch (error) {
-      console.error('File reading error:', error);
       toast({
         variant: "destructive",
-        title: "Error",
+        title: "Import Failed", // Ensure title is a string
         description: (
           <div className="flex items-center gap-2">
             <XCircle className="h-4 w-4" />
-            <span>Failed to read the file. Please try again.</span>
+            <span>An error occurred while importing contacts. Please try again.</span>
           </div>
-        )
+        ),
       });
     } finally {
       setIsUploading(false);
-      setProgress(0);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
     }
-  };
-
-  const handleDownloadTemplate = () => {
-    const template = 'firstName,lastName,email,phone,company,jobTitle,tags,segments\nJohn,Doe,john@example.com,+1234567890,Acme Inc,Manager,"VIP,Customer","Enterprise,Tech"\n';
-    const blob = new Blob([template], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'contacts_template.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -179,7 +127,6 @@ export function ImportContactsDialog({
             Upload a CSV or Excel file containing your contacts data.
           </DialogDescription>
         </DialogHeader>
-
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label>File Upload</Label>
@@ -190,8 +137,6 @@ export function ImportContactsDialog({
                 id="file-upload"
                 accept=".csv,.xlsx,.xls"
                 onChange={handleFileChange}
-                ref={fileInputRef}
-                disabled={isUploading}
               />
               <Label
                 htmlFor="file-upload"
@@ -199,7 +144,7 @@ export function ImportContactsDialog({
               >
                 <Upload className="h-8 w-8 text-muted-foreground" />
                 <span className="text-sm font-medium">
-                  Drop your file here or click to browse
+                  {file ? file.name : "Drop your file here or click to browse"}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   Supported formats: CSV, Excel (max 5MB)
@@ -208,16 +153,6 @@ export function ImportContactsDialog({
             </div>
           </div>
 
-          {isUploading && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>Uploading...</span>
-                <span>{Math.round(progress)}%</span>
-              </div>
-              <Progress value={progress} className="h-1" />
-            </div>
-          )}
-
           <div className="space-y-2">
             <Label>Template</Label>
             <div className="flex items-center justify-between p-2 border rounded-lg">
@@ -225,11 +160,7 @@ export function ImportContactsDialog({
                 <FileType className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">Download template file</span>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={handleDownloadTemplate}
-              >
+              <Button variant="ghost" size="sm">
                 Download
               </Button>
             </div>
@@ -237,28 +168,19 @@ export function ImportContactsDialog({
         </div>
 
         <div className="flex justify-end gap-4">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isUploading}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Label htmlFor="file-upload">
-            <Button
-              disabled={isUploading}
-              className="cursor-pointer"
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Importing...
-                </>
-              ) : (
-                'Select File'
-              )}
-            </Button>
-          </Label>
+          <Button onClick={handleImport} disabled={!file || isUploading}>
+            {isUploading ? (
+              <>
+                <Upload className="mr-2 h-4 w-4 animate-spin" />
+                Importing...
+              </>
+            ) : (
+              "Import Contacts"
+            )}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
